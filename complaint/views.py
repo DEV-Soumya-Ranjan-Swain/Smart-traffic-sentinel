@@ -1,6 +1,9 @@
 from django.shortcuts import render,redirect
 import cv2
 from demo import give_me_out_res as produce
+import os
+from PIL import Image
+from io import BytesIO
 
 
 from complaint.models import Complaint
@@ -22,8 +25,6 @@ def add_complaint(request):
         state=request.POST.get("state")
         comment=request.POST.get("comment")
         uploaded_file = request.FILES.get('evidence')
-        uploaded_photo = request.FILES.get('image')
-        bike_number = request.get('bike_number')
         complaint = Complaint(
                     user=user,
                     violation_date=violation_date,
@@ -33,8 +34,6 @@ def add_complaint(request):
                     comment=comment,
                     # Set other fields similarly
                     uploaded_file=uploaded_file,
-                    uploaded_photo=uploaded_photo,
-                    bike_number=bike_number
                 )
 
         # Save the model to the database
@@ -92,10 +91,25 @@ def verify(request, cid):
     print(complaint)
     print(complaint.uploaded_file.path)
     # vdo = cv2.VideoCapture(complaint.uploaded_file.path)
-    res=produce(complaint.uploaded_file.path)
-    print(1)
-    if res:
+    
+    res,mybikeNumber,cropped=produce(complaint.uploaded_file.path)
+    # image_path = r'./'
+    # with open(image_path, 'rb') as img_file:
+    # complaint.evidence_photo.save('cropped_image.jpg', img_file)
+    # print(1)
+    cv2.imwrite(f'media/complaint_photos/cropped_image{cid}.jpg', cropped)
+    
+
+    if res==1:
         complaint.status='Processed'
+        complaint.bike_number=mybikeNumber
+        complaint.evidence_photo = f'complaint_photos/cropped_image{cid}.jpg'
+        complaint.save()
+    elif res==2:
+        complaint.status='Initiated'
+        complaint.bike_number=mybikeNumber
+        complaint.evidence_photo = f'complaint_photos/cropped_image{cid}.jpg'
+
         complaint.save()
     else:
         complaint.status='Rejected'

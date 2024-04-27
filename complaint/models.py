@@ -21,7 +21,7 @@ class Complaint(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Initiated')
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
-    uploaded_photo = models.FileField(upload_to='complaint_photos/')
+    evidence_photo = models.ImageField(upload_to='complaint_photos/')
     bike_number = models.CharField(max_length=255)
 
     def __str__(self):
